@@ -1,40 +1,26 @@
-// DTO interface for send request of getting messages from telegram channel
-pub trait GetMessagesRequestDtoInterface {
-    // offset for receving messages
-    fn get_offset(&self) -> i64;
-}
+use crate::domain::telegram::gateway::contract::request;
 
-// DTO interface for send request of sending message into telegram channel
-pub trait SendMessageRequestDtoInterface {
-    // user chat id
-    fn get_chat_id(&self) -> i64;
-    // message to send
-    fn get_message(&self) -> String;
-    // parse mod for message format: markdown, html, text
-    fn get_parse_mod(&self) -> String;
-}
-
-#[derive(Debug)]
-pub struct GetMessagesRequestDto {
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetMessagesDto {
     // offset for receving messages
     offset: i64
 }
 
-impl GetMessagesRequestDto {
+impl GetMessagesDto {
     pub fn new(offset: i64) -> Self {
-        return GetMessagesRequestDto { offset };
+        return GetMessagesDto { offset };
     }
 }
 
-impl GetMessagesRequestDtoInterface for GetMessagesRequestDto {
+impl request::GetMessagesDtoInterface for GetMessagesDto {
     fn get_offset(&self) -> i64 {
         return self.offset;
     }
 }
 
 
-#[derive(Debug)]
-pub struct SendMessageRequestDto {
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SendMessageDto {
     // user chat id
     chat_id: i64,
     // message to send
@@ -43,13 +29,13 @@ pub struct SendMessageRequestDto {
     parse_mod: String
 }
 
-impl SendMessageRequestDto {
+impl SendMessageDto {
     pub fn new(chat_id: i64, message: String, parse_mod: String) -> Self {
-        return SendMessageRequestDto { chat_id, message, parse_mod };
+        return SendMessageDto { chat_id, message, parse_mod };
     }
 }
 
-impl SendMessageRequestDtoInterface for SendMessageRequestDto {
+impl request::SendMessageDtoInterface for SendMessageDto {
     fn get_chat_id(&self) -> i64 {
         return self.chat_id;
     }
