@@ -1,31 +1,43 @@
-use crate::domain::telegram::gateway::contract::response;
+use crate::domain::telegram::gateway::contract::response::{self, MessageDtoInterface};
+use crate::domain::telegram::gateway::contract;
 
-use serde_traitobject::Box;
+use serde_traitobject::{Box, Debug};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GetMessagesDto {
+    // is ok? - request status
+    ok: bool,
     // message struct which has data
-    // #[serde(with = "serde_traitobject")]
-    messages: Vec<Box<dyn response::MessageDtoInterface>>
+    result: Vec<Box<MessageDto>>
 }
 
 impl GetMessagesDto {
-    pub fn new(messages: Vec<Box<dyn response::MessageDtoInterface>>) -> Self {
-        return GetMessagesDto { messages };
+    pub fn new(ok: bool, messages: Vec<Box<MessageDto>>) -> Self {
+        return GetMessagesDto { ok, result: messages };
     }
 }
 
-impl response::GetMessagesDtoInterface for GetMessagesDto {
-    fn get_messages(&self) -> Vec<Box<dyn response::MessageDtoInterface>> {
-        return self.clone().messages;
+impl contract::response::GetMessagesDtoInterface for GetMessagesDto {
+    fn is_ok(&self) -> bool {
+        return self.ok;
+    }
+
+    fn get_messages(&self) -> Vec<Box<dyn contract::response::MessageDtoInterface>> {
+        let mut items: Vec<Box<dyn contract::response::MessageDtoInterface>> = vec![];
+
+        for res in self.clone().result {
+            items.push(res as Box<dyn response::MessageDtoInterface>);
+        }
+
+        return items;
     }
 }
 
 impl Clone for GetMessagesDto {
     fn clone(&self) -> Self {
-        let mut messages: Vec<Box<dyn response::MessageDtoInterface>> = vec![];
+        let mut messages: Vec<Box<MessageDto>> = vec![];
 
-        for message in &self.messages {
+        for message in &self.result {
             messages.push(
                 Box::new(
                     MessageDto::new(
@@ -42,7 +54,7 @@ impl Clone for GetMessagesDto {
             );
         }
 
-        return GetMessagesDto { messages };
+        return GetMessagesDto { ok: self.ok, result: messages };
     }
 
     fn clone_from(&mut self, source: &Self)
@@ -57,7 +69,7 @@ pub struct MessageDto {
     // message number in queue 
     update_id: i64,
     // data container
-    data: DataDto
+    message: DataDto
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -97,7 +109,7 @@ impl MessageDto {
     ) -> Self {
         return MessageDto { 
             update_id: queue_id,
-            data: DataDto { 
+            message: DataDto { 
                 chat: ChatDto { 
                     id: chat_id, 
                     first_name: first_name, 
@@ -112,37 +124,37 @@ impl MessageDto {
     }
 }
 
-impl response::MessageDtoInterface for MessageDto {
+impl contract::response::MessageDtoInterface for MessageDto {
     fn get_queue_id(&self) -> i64 {
         return self.update_id;
     }
 
     fn get_chat_id(&self) -> i64 {
-        return self.data.chat.id;
+        return self.message.chat.id;
     }
     
     fn get_first_name(&self) -> String {
-        return self.data.chat.first_name.clone();
+        return self.message.chat.first_name.clone();
     }
     
     fn get_last_name(&self) -> String {
-        return self.data.chat.last_name.clone();
+        return self.message.chat.last_name.clone();
     }
     
     fn get_username(&self) -> String {
-        return self.data.chat.username.clone();
+        return self.message.chat.username.clone();
     }
     
     fn get_chat_type(&self) -> String {
-        return self.data.chat.r#type.clone();
+        return self.message.chat.r#type.clone();
     }
 
     fn get_date(&self) -> i64 {
-        return self.data.date;
+        return self.message.date;
     }
     
     fn get_text(&self) -> String {
-        return self.data.text.clone();
+        return self.message.text.clone();
     }
 }
 
@@ -157,7 +169,7 @@ impl SendMessageDto {
     }
 }
 
-impl response::SendMessageDtoInterface for SendMessageDto {
+impl contract::response::SendMessageDtoInterface for SendMessageDto {
     fn is_ok(&self) -> Result<(), String> {
         return self.result.clone();
     }

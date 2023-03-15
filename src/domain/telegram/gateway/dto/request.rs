@@ -1,4 +1,4 @@
-use crate::domain::telegram::gateway::contract::request;
+use crate::domain::telegram::gateway::contract;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetMessagesDto {
@@ -12,7 +12,7 @@ impl GetMessagesDto {
     }
 }
 
-impl request::GetMessagesDtoInterface for GetMessagesDto {
+impl contract::request::GetMessagesDtoInterface for GetMessagesDto {
     fn get_offset(&self) -> i64 {
         return self.offset;
     }
@@ -35,7 +35,7 @@ impl SendMessageDto {
     }
 }
 
-impl request::SendMessageDtoInterface for SendMessageDto {
+impl contract::request::SendMessageDtoInterface for SendMessageDto {
     fn get_chat_id(&self) -> i64 {
         return self.chat_id;
     }

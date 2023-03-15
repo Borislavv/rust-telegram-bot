@@ -8,63 +8,99 @@ extern crate serde_json;
 use serde_traitobject::Box;
 
 use crate::domain::telegram::gateway::contract;
+use crate::domain::telegram::gateway::contract::gateway::GatewayInterface;
 use crate::domain::telegram::gateway::contract::response::GetMessagesDtoInterface;
+use crate::domain::telegram::gateway::dto::response::MessageDto;
 use crate::domain::telegram::gateway::dto;
+use crate::domain::telegram::gateway::usecase;
 
 
 fn main() {
-    let get_messages_request_dto = dto::request::GetMessagesDto::new(1234567);
-    let send_message_request_dto = dto::request::SendMessageDto::new(5678, "Hello from struct".to_string(), "html".to_string());
-
-    println!("req: '{:?}', resp: '{:?}'\n\n", get_messages_request_dto, send_message_request_dto);
-
-    let message_response_dto1 = dto::response::MessageDto::new(
-        123, 
-        234, 
-        "Jared".to_string(),
-        "Jaredson".to_string(),
-        "Jareddd".to_string(),
-        "channel".to_string(),
-        32843599832470,
-        "message from channel Jared".to_string()
-    );
-    let message_response_dto2 = dto::response::MessageDto::new(
-        1235, 
-        2347, 
-        "Jack".to_string(),
-        "Jackson".to_string(),
-        "Jackkkk".to_string(),
-        "channel".to_string(),
-        32843599345470,
-        "message from channel of Jack".to_string()
+    let gateway = usecase::gateway::Gateway::new(
+        "https://api.telegram.org".to_string(), 
+        "6283148707:AAE34Fob6V8cDlgzhspHKv7TX-r2CLdYXTs".to_string()
     );
 
-    let messages_response_dto: Vec<Box<dyn contract::response::MessageDtoInterface>> = vec![Box::new(message_response_dto1), Box::new(message_response_dto2)];
-    let get_messages_response_dto = dto::response::GetMessagesDto::new(messages_response_dto);
+    let requestDto: Box<dyn contract::request::GetMessagesDtoInterface> = Box::new(dto::request::GetMessagesDto::new(904019216));
+    let result = gateway.get_messages(requestDto);
 
-    for msg_resp in get_messages_response_dto.get_messages() {
-        println!(
-            "
-                queue_id = {},
-                chat_id = {},
-                firstname = {},
-                lastname = {},
-                username = {},
-                chat_type = {},
-                date = {},
-                text = {}
-            ",
-            msg_resp.get_queue_id(),
-            msg_resp.get_chat_id(),
-            msg_resp.get_first_name(),
-            msg_resp.get_last_name(),
-            msg_resp.get_username(),
-            msg_resp.get_chat_type(),
-            msg_resp.get_date(),
-            msg_resp.get_text()
-        );
-    }
+    let response = match result {
+        Ok(v) => v,
+        Err(e) => panic!("{}", e)
+    };
+
+    println!("{:?}", response.get_messages());
+
+    println!("{:?}", response);
 }
+
+
+
+
+
+
+// use serde_traitobject::Box;
+// use std::fmt::Debug;
+// fn main() {
+//     trait IncMessageInterface: Debug {}
+
+//     #[derive(Debug)]
+//     struct IncMessage {}
+
+//     impl IncMessageInterface for IncMessage {}
+
+
+//     trait MessageInterface {
+//         fn get_data(&self) -> String;
+//         fn get_inc_msgs(&self) -> Vec<Box<dyn IncMessageInterface>>;
+//     }
+
+//     #[derive(Debug)]
+//     struct Message {
+//         msg: String,
+//         inc_msgs: Vec<Box<IncMessage>>
+//     }
+
+//     impl MessageInterface for Message {
+//         fn get_data(&self) -> String {
+//             return self.msg.clone();
+//         }
+
+//         fn get_inc_msgs(&self) -> Vec<Box<dyn IncMessageInterface>> {
+//             // let mut inc_msgs: Vec<Box<dyn IncMessageInterface>> = vec![];
+
+//             // for _inc_msg in &self.inc_msgs {
+//             //     inc_msgs.push(Box::new(IncMessage{}));
+//             // }
+
+//             // return inc_msgs;
+
+//             // ==========================================================
+
+//             let mut inc_msgs: Vec<Box<dyn IncMessageInterface>> = vec![];
+
+//             for inc_msg in &self.inc_msgs {
+//                 let i = *inc_msg as Box<dyn IncMessageInterface>;
+//                 inc_msgs.push(i);
+//             }
+
+//             return inc_msgs;
+//         }
+//     }
+
+//     let message = vec![
+//         Box::new(
+//             Message {
+//                 msg: "strstrstr".to_string(),
+//                 inc_msgs: vec![Box::new(IncMessage{}), Box::new(IncMessage{}), Box::new(IncMessage{})]
+//             }
+//         )
+//     ];
+
+//     let msg = message.first().unwrap();
+
+//     println!("{}, {:?}", msg.get_data(), msg.get_inc_msgs());
+// }
 
 
 
@@ -143,25 +179,31 @@ fn main() {
 
 // fn main() {
 //     trait BazInterface: Debug  {
-
+//         fn get_msg(&self) -> String;
 //     }
 
 //     #[derive(Serialize, Deserialize, Debug)]
 //     struct BazStruct {
-//         any: String
+//         any: String,
+//         msg: String
 //     }
 
 //     impl BazInterface for BazBazStruct {
-
+//         fn get_msg(&self) -> String {
+//             return self.msg.clone();
+//         }
 //     }
 
 //     #[derive(Serialize, Deserialize, Debug)]
 //     struct BazBazStruct {
-//         any1: String
+//         any1: String,
+//         msg: String
 //     }
 
 //     impl BazInterface for BazStruct {
-
+//         fn get_msg(&self) -> String {
+//             return self.msg.clone();
+//         }
 //     }
 
 //     #[derive(Serialize, Deserialize, Debug)]
@@ -175,14 +217,34 @@ fn main() {
 //         foo: String::from("abc"),
 //         bar: 123,
 //         baz: vec![
-//             s::Box::new(BazStruct{any: "hello world".to_string()}),
-//             s::Box::new(BazBazStruct{any1: "hello world agein".to_string()})
+//             s::Box::new(BazStruct{any: "hello world".to_string(), msg: "BazStruct implementation".to_string()}),
+//             s::Box::new(BazBazStruct{any1: "hello world agein".to_string(), msg: "BazBazStruct implementation".to_string()})
 //         ]
 //     };
 
 //     let erased: s::Box<dyn s::Any> = s::Box::new(my_struct);
 
-//     let serialized = serde_json::to_string(&erased).unwrap();
+//     // let serialized = serde_json::to_string(&erased).unwrap();
+//     let serialized: String = "
+//     [{
+//         \"foo\": \"abc\",
+//         \"bar\": 123,
+//         \"baz\": [
+            
+//                 [{
+//                     \"any\": \"hello world\",
+//                     \"msg\": \"BazStruct implementation\"
+//                 }]
+//             ,
+            
+//                 [{
+//                     \"any1\": \"hello world agein\",
+//                     \"msg\": \"BazBazStruct implementation\"
+//                 }]
+            
+//         ]
+//     }]
+//     ".to_string();
 
 //     let deserialized: s::Box<dyn s::Any> = serde_json::from_str(&serialized).unwrap();
 
