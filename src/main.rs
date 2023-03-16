@@ -1,108 +1,110 @@
-mod domain;
+// mod domain;
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_traitobject;
-extern crate serde_json;
+// #[macro_use]
+// extern crate serde_derive;
+// extern crate serde_traitobject;
+// extern crate serde_json;
 
-use serde_traitobject::Box;
-
-use crate::domain::telegram::gateway::contract;
-use crate::domain::telegram::gateway::contract::gateway::GatewayInterface;
-use crate::domain::telegram::gateway::contract::response::GetMessagesDtoInterface;
-use crate::domain::telegram::gateway::dto::response::MessageDto;
-use crate::domain::telegram::gateway::dto;
-use crate::domain::telegram::gateway::usecase;
-
-
-fn main() {
-    let gateway = usecase::gateway::Gateway::new(
-        "https://api.telegram.org".to_string(), 
-        "6283148707:AAE34Fob6V8cDlgzhspHKv7TX-r2CLdYXTs".to_string()
-    );
-
-    let requestDto: Box<dyn contract::request::GetMessagesDtoInterface> = Box::new(dto::request::GetMessagesDto::new(904019216));
-    let result = gateway.get_messages(requestDto);
-
-    let response = match result {
-        Ok(v) => v,
-        Err(e) => panic!("{}", e)
-    };
-
-    println!("{:?}", response.get_messages());
-
-    println!("{:?}", response);
-}
-
-
-
-
-
+// use core::panic;
 
 // use serde_traitobject::Box;
-// use std::fmt::Debug;
+
+// use crate::domain::telegram::gateway::contract;
+// use crate::domain::telegram::gateway::contract::gateway::GatewayInterface;
+// use crate::domain::telegram::gateway::dto;
+// use crate::domain::telegram::gateway::usecase;
+
+
 // fn main() {
-//     trait IncMessageInterface: Debug {}
+//     let gateway = usecase::gateway::Gateway::new(
+//         "https://api.telegram.org".to_string(), 
+//         "6283148707:AAE34Fob6V8cDlgzhspHKv7TX-r2CLdYXTs".to_string()
+//     );
 
-//     #[derive(Debug)]
-//     struct IncMessage {}
+//     // request: get messages
+//     // let request_dto: Box<dyn contract::request::GetMessagesDtoInterface> = Box::new(dto::request::GetMessagesDto::new(904019216));
+//     // let result = gateway.get_messages(request_dto);
 
-//     impl IncMessageInterface for IncMessage {}
+//     // let response = match result {
+//     //     Ok(v) => v,
+//     //     Err(err) => panic!("{}", err)
+//     // };
 
+//     // println!("{:?}", response);
 
-//     trait MessageInterface {
-//         fn get_data(&self) -> String;
-//         fn get_inc_msgs(&self) -> Vec<Box<dyn IncMessageInterface>>;
-//     }
+//     // request: send message
 
-//     #[derive(Debug)]
-//     struct Message {
-//         msg: String,
-//         inc_msgs: Vec<Box<IncMessage>>
-//     }
-
-//     impl MessageInterface for Message {
-//         fn get_data(&self) -> String {
-//             return self.msg.clone();
-//         }
-
-//         fn get_inc_msgs(&self) -> Vec<Box<dyn IncMessageInterface>> {
-//             // let mut inc_msgs: Vec<Box<dyn IncMessageInterface>> = vec![];
-
-//             // for _inc_msg in &self.inc_msgs {
-//             //     inc_msgs.push(Box::new(IncMessage{}));
-//             // }
-
-//             // return inc_msgs;
-
-//             // ==========================================================
-
-//             let mut inc_msgs: Vec<Box<dyn IncMessageInterface>> = vec![];
-
-//             for inc_msg in &self.inc_msgs {
-//                 let i = *inc_msg as Box<dyn IncMessageInterface>;
-//                 inc_msgs.push(i);
-//             }
-
-//             return inc_msgs;
-//         }
-//     }
-
-//     let message = vec![
+//     let result_of_send_message_request = gateway.send_message(
 //         Box::new(
-//             Message {
-//                 msg: "strstrstr".to_string(),
-//                 inc_msgs: vec![Box::new(IncMessage{}), Box::new(IncMessage{}), Box::new(IncMessage{})]
-//             }
+//             dto::request::SendMessageDto::new(1063099947, "Hello from code".to_string(), "html".to_string())
 //         )
-//     ];
+//     );
 
-//     let msg = message.first().unwrap();
-
-//     println!("{}, {:?}", msg.get_data(), msg.get_inc_msgs());
+//     let response_of_send_message_request = match result_of_send_message_request {
+//         Ok(v) => v,
+//         Err(err) => panic!("{}", err)
+//     };
 // }
 
 
+
+
+use serde::Serialize;
+use serde_traitobject::Box;
+use std::fmt::Debug;
+fn main() {
+    trait IncMessageInterface: Debug + serde_traitobject::Serialize {}
+
+    #[derive(Debug, Serialize)]
+    struct IncMessage {}
+
+    impl IncMessageInterface for IncMessage {}
+
+
+    trait MessageInterface: serde_traitobject::Serialize {
+        fn get_data(&self) -> String;
+        fn get_inc_msgs(&self) -> Vec<Box<dyn IncMessageInterface>>;
+    }
+
+    #[derive(Debug, Serialize)]
+    struct Message {
+        msg: String,
+        inc_msgs: Vec<Box<IncMessage>>
+    }
+
+    impl MessageInterface for Message {
+        fn get_data(&self) -> String {
+            return self.msg.clone();
+        }
+
+        fn get_inc_msgs(&self) -> Vec<Box<dyn IncMessageInterface>> {
+            let mut inc_msgs: Vec<Box<dyn IncMessageInterface>> = vec![];
+
+            for _inc_msg in &self.inc_msgs {
+                inc_msgs.push(Box::new(IncMessage{}));
+            }
+
+            return inc_msgs;
+        }
+    }
+
+    let message: Vec<Box<dyn MessageInterface>> = vec![
+        Box::new(
+            Message {
+                msg: "strstrstr".to_string(),
+                inc_msgs: vec![Box::new(IncMessage{}), Box::new(IncMessage{}), Box::new(IncMessage{})]
+            }
+        )
+    ];
+
+    let msg = message.first().unwrap();
+
+    let json = serde_json::to_string(msg).unwrap();
+
+    println!("{}", json);
+
+    // println!("{}, {:?}", msg.get_data(), msg.get_inc_msgs());
+}
 
 
 

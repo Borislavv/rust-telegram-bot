@@ -24,14 +24,14 @@ pub struct SendMessageDto {
     // user chat id
     chat_id: i64,
     // message to send
-    message: String,
+    text: String,
     // parse mod for message format: markdown, html, text
     parse_mod: String
 }
 
 impl SendMessageDto {
-    pub fn new(chat_id: i64, message: String, parse_mod: String) -> Self {
-        return SendMessageDto { chat_id, message, parse_mod };
+    pub fn new(chat_id: i64, text: String, parse_mod: String) -> Self {
+        return SendMessageDto { chat_id, text, parse_mod };
     }
 }
 
@@ -41,7 +41,7 @@ impl contract::request::SendMessageDtoInterface for SendMessageDto {
     }
 
     fn get_message(&self) -> String {
-        return self.message.clone();
+        return self.text.clone();
     }
 
     fn get_parse_mod(&self) -> String {

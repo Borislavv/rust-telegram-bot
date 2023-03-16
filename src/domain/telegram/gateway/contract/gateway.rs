@@ -8,6 +8,6 @@ pub trait GatewayInterface {
     fn get_messages(&self, request: Box<dyn request::GetMessagesDtoInterface>) 
         -> Result<Box<dyn response::GetMessagesDtoInterface>, String>;
     // sending message to telegram channel
-    // fn send_message(&self, request: Box<dyn response::SendMessageDtoInterface>) 
-    //     -> Result<Box<dyn response::SendMessageDtoInterface>, String>;
+    fn send_message(&self, request: Box<dyn request::SendMessageDtoInterface>) 
+        -> Result<Box<dyn response::SendMessageDtoInterface>, String>;
 }
