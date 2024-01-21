@@ -37,7 +37,7 @@ impl MessageDto {
         queue_id: i64,
         chat_id: i64,
         first_name: String,
-        last_name: String,
+        last_name: Option<String>,
         username: String,
         chat_type: String,
         date: i64,
@@ -69,28 +69,31 @@ impl contract::response::MessageDtoInterface for MessageDto {
         return self.message.chat.id;
     }
     
-    fn get_first_name(&self) -> String {
-        return self.message.chat.first_name.clone();
+    fn get_first_name(&self) -> &str {
+        return &self.message.chat.first_name;
     }
     
-    fn get_last_name(&self) -> String {
-        return self.message.chat.last_name.clone();
+    fn get_last_name(&self) -> Option<&str> {
+        if let Some(last_name) = &self.message.chat.last_name {
+            return Some(last_name);
+        }
+        return None;
     }
     
-    fn get_username(&self) -> String {
-        return self.message.chat.username.clone();
+    fn get_username(&self) -> &str {
+        return self.message.chat.username;
     }
     
-    fn get_chat_type(&self) -> String {
-        return self.message.chat.r#type.clone();
+    fn get_chat_type(&self) -> &str {
+        return &self.message.chat.r#type;
     }
 
     fn get_date(&self) -> i64 {
         return self.message.date;
     }
     
-    fn get_text(&self) -> String {
-        return self.message.text.clone();
+    fn get_text(&self) -> &str {
+        return &self.message.text;
     }
 }
 
@@ -111,7 +114,7 @@ pub struct ChatDto {
     // user first name 
     first_name: String,
     // user last name
-    last_name: String,
+    last_name: Option<String>,
     // nickname of user in telegram
     username: String,
     // user chat type: channel, private chat, public chat
@@ -123,20 +126,23 @@ impl contract::response::ChatDtoInterface for ChatDto {
         return self.id;
     }
 
-    fn get_first_name(&self) -> String {
-        return self.first_name.clone();
+    fn get_first_name(&self) -> &str {
+        return &self.first_name;
     }
 
-    fn get_last_name(&self) -> String {
-        return self.last_name.clone();
+    fn get_last_name(&self) -> Option<&str> {
+        if let Some(last_name) = &self.last_name {
+            return Some(last_name)
+        }
+        return None
     }
 
-    fn get_username(&self) -> String {
-        return self.username.clone();
+    fn get_username(&self) -> &str {
+        return &self.username;
     }
     
-    fn get_type(&self) -> String {
-        return self.r#type.clone();
+    fn get_type(&self) -> &str {
+        return &self.r#type;
     }
 }
 
@@ -148,14 +154,14 @@ pub struct FromDto {
     is_bot: bool,
     // user first name 
     first_name: String,
-    // user last name
-    last_name: String,
     // nickname of user in telegram
     username: String,
+    // user last name
+    last_name: Option<String>,
     // user language
-    language_code: String,
+    language_code: Option<String>,
     // is premium user - indicator
-    is_premium: bool
+    is_premium: Option<bool>
 }
 
 impl contract::response::FromDtoInterface for FromDto {
@@ -163,33 +169,56 @@ impl contract::response::FromDtoInterface for FromDto {
         return self.id;
     }
 
-    fn get_first_name(&self) -> String {
-        return self.first_name.clone();
+    fn get_first_name(&self) -> &str {
+        return &self.first_name;
     }
 
-    fn get_last_name(&self) -> String {
-        return self.last_name.clone();
+    fn get_last_name(&self) -> Option<&str> {
+        if let Some(last_name) = &self.last_name {
+            return Some(last_name);
+        }
+        return None;
     }
 
-    fn get_username(&self) -> String {
-        return self.username.clone();
+    fn get_username(&self) -> &str {
+        return &self.username;
     }
 
-    fn get_language_code(&self) -> String {
-        return self.language_code.clone();
+    fn get_language_code(&self) -> Option<&str> {
+        if let Some(language_code) = &self.language_code {
+            return Some(language_code);
+        }
+        return None;
     }
 
     fn is_bot(&self) -> bool {
         return self.is_bot;
     }
+
+    fn is_premium(&self) -> Option<bool> {
+        if let Some(is_premium) = self.is_premium {
+            return Some(is_premium);
+        }
+        return None;
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SendMessageDto {
+pub struct SuccessSendMessageDto {
     // is ok? - request status
     ok: bool,
-    // message struct which has data
+    // message struct which has data on success request
     result: ResultDto
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FailedSendMessageDto {
+    // is ok? - request status
+    ok: bool,
+    // code of error on failed request
+    pub error_code: i32,
+    // description of error on failed request
+    pub description: String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -204,10 +233,9 @@ pub struct ResultDto {
     date: i64,
     // message text
     text: String
-
 }
 
-impl contract::response::SendMessageDtoInterface for SendMessageDto {
+impl contract::response::SendMessageDtoInterface for SuccessSendMessageDto {
     fn is_ok(&self) -> bool {
         return self.ok;
     }
@@ -228,7 +256,7 @@ impl contract::response::SendMessageDtoInterface for SendMessageDto {
         return self.result.date;
     }
 
-    fn get_text(&self) -> String {
-        return self.result.text.clone();
+    fn get_text(&self) -> &str {
+        return &self.result.text;
     }
 }

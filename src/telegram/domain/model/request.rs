@@ -40,11 +40,11 @@ impl contract::request::SendMessageDtoInterface for SendMessageDto {
         return self.chat_id;
     }
 
-    fn get_message(&self) -> String {
-        return self.text.clone();
+    fn get_message(&self) -> &str {
+        return &self.text;
     }
 
-    fn get_parse_mod(&self) -> String {
-        return self.parse_mod.clone();
+    fn get_parse_mod(&self) -> &str {
+        return &self.parse_mod;
     }
 }

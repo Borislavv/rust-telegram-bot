@@ -1,14 +1,17 @@
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::Debug;
 
 use reqwest::blocking::Client;
+use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
 
 use crate::domain::telegram::gateway::dto;
 use crate::domain::telegram::gateway::contract;
+use crate::domain::telegram::gateway::dto::response::{FailedSendMessageDto, SuccessSendMessageDto};
 use crate::domain::telegram::gateway::r#enum::endpoint::Endpoint;
 
-use serde_traitobject::Box;
-
-pub struct Gateway {
+pub struct HttpRepository {
     // telegram bot url
     endpoint: String,
     // specific telegram bot token
@@ -17,20 +20,21 @@ pub struct Gateway {
     methods: HashMap<Endpoint, String>
 }
 
-impl Gateway {
+impl HttpRepository {
     pub fn new(endpoint: String, token: String) -> Self {
         let mut methods: HashMap<Endpoint, String> = HashMap::new();
             methods.insert(Endpoint::GetMessagesMethod, "getUpdates".to_string());
             methods.insert(Endpoint::SendMessageMethod, "sendMessage".to_string());
 
-        return Gateway{ endpoint, token, methods};
+        return HttpRepository { endpoint, token, methods};
     }
 }
 
-impl contract::gateway::GatewayInterface for Gateway {
-    fn get_messages(&self, request: Box<dyn contract::request::GetMessagesDtoInterface>)
-        -> Result<dto::response::GetMessagesDto, String> {
-
+impl contract::gateway::GatewayInterface for HttpRepository {
+    fn get_messages<T>(&self, request: T) -> Result<dto::response::GetMessagesDto, String>
+    where
+        T: contract::request::GetMessagesDtoInterface
+    {
         let method = match self.methods.get(&Endpoint::GetMessagesMethod) {
             Some(val) => val,
             None => panic!("fatal: endpoint for request messages not found into the map")
@@ -53,33 +57,39 @@ impl contract::gateway::GatewayInterface for Gateway {
         }
     }
 
-    fn send_message(&self, request: Box<dyn contract::request::SendMessageDtoInterface>)
-            -> Result<dto::response::SendMessageDto, String> {
-
+    fn send_message<T>(&self, request: T) -> Result<SuccessSendMessageDto, String>
+    where
+        T: contract::request::SendMessageDtoInterface + Serialize + Debug
+    {
         let method = match self.methods.get(&Endpoint::SendMessageMethod) {
             Some(val) => val,
             None => panic!("fatal: endpoint for send message not found into the map")
         };
 
-        println!("{}", serde_json::to_string(&request).unwrap());
-
         let result = Client::new()
             .post(format!("{}/bot{}/{}", self.endpoint, self.token, method))
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(serde_json::to_string(&request).unwrap())
             .send();
 
-        match result {
+        return match result {
             Ok(response) => {
+                let status_code = response.status();
                 let bytes = response.bytes().unwrap();
                 let json = std::str::from_utf8(&bytes).unwrap();
 
-                println!("{}", json);
-
-                let obj: dto::response::SendMessageDto = serde_json::from_str(json).unwrap();
-
-                return Ok(obj);
+                return match status_code {
+                    StatusCode::OK => {
+                        let success_resp: SuccessSendMessageDto = serde_json::from_str(json).unwrap();
+                        return Ok(success_resp);
+                    },
+                    _ => {
+                        let failed_resp: FailedSendMessageDto = serde_json::from_str(json).unwrap();
+                        return Err(format!("status_code: {}, description: {}", failed_resp.error_code, failed_resp.description));
+                    }
+                };
             },
             Err(err) => Err(err.to_string())
-        }
+        };
     }
 }
