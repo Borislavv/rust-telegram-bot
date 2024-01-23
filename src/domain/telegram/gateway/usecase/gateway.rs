@@ -11,7 +11,7 @@ use serde_traitobject::Box;
 pub struct Gateway {
     // telegram bot url
     endpoint: String,
-    // spcific telegram bot token
+    // specific telegram bot token
     token: String,
     // telegram api methods
     methods: HashMap<Endpoint, String>
@@ -28,11 +28,13 @@ impl Gateway {
 }
 
 impl contract::gateway::GatewayInterface for Gateway {
-    // getting messages from telegram channel by given offset
     fn get_messages(&self, request: Box<dyn contract::request::GetMessagesDtoInterface>)
-        -> Result<Box<dyn contract::response::GetMessagesDtoInterface>, String> {
+        -> Result<dto::response::GetMessagesDto, String> {
 
-        let method: String = (*self.methods.get(&Endpoint::GetMessagesMethod).unwrap().clone()).to_string();
+        let method = match self.methods.get(&Endpoint::GetMessagesMethod) {
+            Some(val) => val,
+            None => panic!("fatal: endpoint for request messages not found into the map")
+        };
 
         let result = Client::new()
             .get(format!("{}/bot{}/{}", self.endpoint, self.token, method))
@@ -44,19 +46,20 @@ impl contract::gateway::GatewayInterface for Gateway {
                 let bytes = response.bytes().unwrap();
                 let json = std::str::from_utf8(&bytes).unwrap();
                 let obj: dto::response::GetMessagesDto = serde_json::from_str(json).unwrap();
-                let boxed_obj = Box::new(obj) as Box<dyn contract::response::GetMessagesDtoInterface>;
 
-                return Ok(boxed_obj);
+                return Ok(obj);
             },
             Err(err) => Err(err.to_string())
         }
     }
 
-    // sending message to telegram channel
-    fn send_message(&self, request: Box<dyn contract::request::SendMessageDtoInterface>) 
-            -> Result<Box<dyn contract::response::SendMessageDtoInterface>, String> {
+    fn send_message(&self, request: Box<dyn contract::request::SendMessageDtoInterface>)
+            -> Result<dto::response::SendMessageDto, String> {
 
-        let method: String = (*self.methods.get(&Endpoint::SendMessageMethod).unwrap().clone()).to_string();
+        let method = match self.methods.get(&Endpoint::SendMessageMethod) {
+            Some(val) => val,
+            None => panic!("fatal: endpoint for send message not found into the map")
+        };
 
         println!("{}", serde_json::to_string(&request).unwrap());
 
@@ -73,9 +76,8 @@ impl contract::gateway::GatewayInterface for Gateway {
                 println!("{}", json);
 
                 let obj: dto::response::SendMessageDto = serde_json::from_str(json).unwrap();
-                let boxed_obj = Box::new(obj) as Box<dyn contract::response::SendMessageDtoInterface>;
 
-                return Ok(boxed_obj);
+                return Ok(obj);
             },
             Err(err) => Err(err.to_string())
         }
