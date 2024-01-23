@@ -1,10 +1,12 @@
-use serde_traitobject::{Serialize, Deserialize, Box, Debug};
+use crate::dto::response;
+
+use serde_traitobject::{Serialize, Deserialize, Debug};
 
 pub trait GetMessagesDtoInterface: Serialize + Deserialize + Debug {
     // is ok? - request status
     fn is_ok(&self) -> bool;
     // message struct which has data
-    fn get_messages(&self) -> Vec<Box<dyn MessageDtoInterface>>;
+    fn get_messages(&self) -> &Vec<response::MessageDto>;
 }
 
 pub trait MessageDtoInterface: Serialize + Deserialize + Debug  {
@@ -60,9 +62,9 @@ pub trait SendMessageDtoInterface: Serialize + Deserialize + Debug {
     // message external primary key
     fn get_message_id(&self) -> i64;
     // whom send a message data
-    fn get_from_data(&self) -> Box<dyn FromDtoInterface>;
+    fn get_from_data(&self) -> &response::FromDto;
     // which chat is used data
-    fn get_chat_data(&self) -> Box<dyn ChatDtoInterface>;
+    fn get_chat_data(&self) -> &response::ChatDto;
     // date in unix timestamp
     fn get_date(&self) -> i64;
     // message text
