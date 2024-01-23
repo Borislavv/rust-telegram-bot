@@ -1,18 +1,15 @@
-use crate::domain::telegram::gateway::contract::response::{self, MessageDtoInterface};
 use crate::domain::telegram::gateway::contract;
-
-use serde_traitobject::Box;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetMessagesDto {
     // is ok? - request status
     ok: bool,
     // message struct which has data
-    result: Vec<Box<MessageDto>>
+    result: Vec<MessageDto>
 }
 
 impl GetMessagesDto {
-    pub fn new(ok: bool, messages: Vec<Box<MessageDto>>) -> Self {
+    pub fn new(ok: bool, messages: Vec<MessageDto>) -> Self {
         return GetMessagesDto { ok, result: messages };
     }
 }
@@ -22,48 +19,10 @@ impl contract::response::GetMessagesDtoInterface for GetMessagesDto {
         return self.ok;
     }
 
-    fn get_messages(&self) -> Vec<Box<dyn contract::response::MessageDtoInterface>> {
-        let mut items: Vec<Box<dyn contract::response::MessageDtoInterface>> = vec![];
-
-        for res in self.clone().result {
-            items.push(res as Box<dyn response::MessageDtoInterface>);
-        }
-
-        return items;
+    fn get_messages(&self) -> &Vec<MessageDto> {
+        return &self.result;
     }
 }
-
-impl Clone for GetMessagesDto {
-    fn clone(&self) -> Self {
-        let mut messages: Vec<Box<MessageDto>> = vec![];
-
-        for message in &self.result {
-            messages.push(
-                Box::new(
-                    MessageDto::new(
-                        message.get_queue_id(), 
-                        message.get_chat_id(), 
-                        message.get_first_name(), 
-                        message.get_last_name(), 
-                        message.get_username(), 
-                        message.get_chat_type(), 
-                        message.get_date(), 
-                        message.get_text()
-                    )
-                )
-            );
-        }
-
-        return GetMessagesDto { ok: self.ok, result: messages };
-    }
-
-    fn clone_from(&mut self, source: &Self)
-    {
-        *self = source.clone();
-        drop(source);
-    }
-}
-
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MessageDto {
@@ -159,24 +118,6 @@ pub struct ChatDto {
     r#type: String,
 }
 
-impl Clone for ChatDto {
-    fn clone(&self) -> Self {
-        return ChatDto { 
-            id: self.id, 
-            first_name: self.first_name.clone(), 
-            last_name: self.last_name.clone(), 
-            username: self.username.clone(), 
-            r#type: self.r#type.clone()
-        };
-    }
-
-    fn clone_from(&mut self, source: &Self)
-    {
-        *self = source.clone();
-        drop(source);
-    }
-}
-
 impl contract::response::ChatDtoInterface for ChatDto {
     fn get_chat_id(&self) -> i64 {
         return self.id;
@@ -215,26 +156,6 @@ pub struct FromDto {
     language_code: String,
     // is premium user - indicator
     is_premium: bool
-}
-
-impl Clone for FromDto {
-    fn clone(&self) -> Self {
-        return FromDto { 
-            id: self.id, 
-            is_bot: self.is_bot, 
-            first_name: self.first_name.clone(), 
-            last_name: self.last_name.clone(), 
-            username: self.username.clone(), 
-            language_code: self.language_code.clone(), 
-            is_premium: self.is_premium
-        };
-    }
-
-    fn clone_from(&mut self, source: &Self)
-    {
-        *self = source.clone();
-        drop(source);
-    }
 }
 
 impl contract::response::FromDtoInterface for FromDto {
@@ -295,12 +216,12 @@ impl contract::response::SendMessageDtoInterface for SendMessageDto {
         return self.result.message_id;
     }
 
-    fn get_from_data(&self) -> Box<dyn contract::response::FromDtoInterface> {
-        return self.clone().get_from_data();
+    fn get_from_data(&self) -> &FromDto {
+        return &self.result.from;
     }
 
-    fn get_chat_data(&self) -> Box<dyn contract::response::ChatDtoInterface> {
-        return self.clone().get_chat_data();
+    fn get_chat_data(&self) -> &ChatDto {
+        return &self.result.chat;
     }
 
     fn get_date(&self) -> i64 {
