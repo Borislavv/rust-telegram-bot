@@ -1,13 +1,13 @@
-use serde_traitobject::{Serialize, Deserialize};
+use serde_traitobject::{Serialize, Deserialize, Debug};
 
 // DTO interface for send request of getting messages from telegram channel
-pub trait GetMessagesDtoInterface: Serialize + Deserialize {
-    // offset for receving messages
+pub trait GetMessagesDtoInterface: Serialize + Deserialize + Debug {
+    // offset for receiving messages
     fn get_offset(&self) -> i64;
 }
 
 // DTO interface for send request of sending message into telegram channel
-pub trait SendMessageDtoInterface: Serialize + Deserialize {
+pub trait SendMessageDtoInterface: Serialize + Deserialize + Debug {
     // user chat id
     fn get_chat_id(&self) -> i64;
     // message to send
