@@ -1,4 +1,4 @@
-use crate::dto::response;
+use crate::telegram::domain::model::response;
 
 pub trait GetMessagesDtoInterface {
     // is ok? - request status
