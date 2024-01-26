@@ -1,4 +1,4 @@
-use crate::domain::telegram::gateway::contract;
+use crate::telegram::domain::contract;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetMessagesDto {
@@ -81,7 +81,7 @@ impl contract::response::MessageDtoInterface for MessageDto {
     }
     
     fn get_username(&self) -> &str {
-        return self.message.chat.username;
+        return &self.message.chat.username;
     }
     
     fn get_chat_type(&self) -> &str {
