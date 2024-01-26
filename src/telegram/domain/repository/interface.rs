@@ -1,15 +1,11 @@
-use std::fmt::Debug;
-use serde::Serialize;
 use crate::telegram::domain::{contract, model};
 
-pub trait RepositoryInterface {
+pub trait Telegram {
     // receiving messages from telegram channel
-    fn get_messages<T>(&self, request: T) -> Result<model::response::GetMessagesDto, String>
-        where
-            T: contract::request::GetMessagesDtoInterface;
+    fn get_messages(&self, request: Box<dyn contract::request::GetMessagesDtoInterface>)
+        -> Result<model::response::GetMessagesDto, String>;
 
     // sending message to telegram channel
-    fn send_message<T>(&self, request: T) -> Result<model::response::SuccessSendMessageDto, String>
-        where
-            T: contract::request::SendMessageDtoInterface + Serialize + Debug;
+    fn send_message(&self, request: Box<dyn contract::request::SendMessageDtoInterface>)
+        -> Result<model::response::SuccessSendMessageDto, String>;
 }
