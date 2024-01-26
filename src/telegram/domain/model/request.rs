@@ -1,8 +1,8 @@
-use crate::domain::telegram::gateway::contract;
+use crate::telegram::domain::contract;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetMessagesDto {
-    // offset for receving messages
+    // offset for receiving messages
     offset: i64
 }
 
