@@ -9,18 +9,16 @@ use std::rc::Rc;
 use crate::telegram::app::facade::TelegramFacade;
 use crate::telegram::app::facade_interface::TelegramFacadeInterface;
 use crate::telegram::app::service::receiver::receiver::Receiver;
-use crate::telegram::app::service::receiver::receiver_interface::MessageReceiver;
 use crate::telegram::app::service::sender::sender::Sender;
 
 use crate::telegram::domain::model;
-use crate::telegram::domain::repository::interface::Telegram;
 use crate::telegram::infrastructure::repository;
 
 fn main() {
     let telegram_repository = Rc::new(
         repository::http::Telegram::new(
             "https://api.telegram.org".to_string(),
-            "6283148707:AAE34Fob6V8cDlgzhspHKv7TX-r2CLdYXTs123".to_string()
+            "6283148707:AAE34Fob6V8cDlgzhspHKv7TX-r2CLdYXTs".to_string()
         )
     );
 
