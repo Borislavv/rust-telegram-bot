@@ -212,7 +212,7 @@ pub struct SuccessSendMessageDto {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct FailedSendMessageDto {
+pub struct FailedResponseDto {
     // is ok? - request status
     ok: bool,
     // code of error on failed request
