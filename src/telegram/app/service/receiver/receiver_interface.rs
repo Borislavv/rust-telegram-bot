@@ -1,8 +1,8 @@
 use crate::telegram::domain::model;
 use crate::telegram::domain::contract;
+use crate::telegram::domain::r#enum::error::Error;
 
 pub trait MessageReceiver {
-    fn get_messages<T>(&self, request: T) -> Result<model::response::GetMessagesDto, String>
-    where
-        T: contract::request::GetMessagesDtoInterface;
+    fn get_messages(&self, request: Box<dyn contract::request::GetMessagesDtoInterface>)
+        -> Result<model::response::GetMessagesDto, Error>;
 }
