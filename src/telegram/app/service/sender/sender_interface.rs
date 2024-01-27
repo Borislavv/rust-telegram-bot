@@ -3,9 +3,9 @@ use serde::Serialize;
 
 use crate::telegram::domain::model;
 use crate::telegram::domain::contract;
+use crate::telegram::domain::r#enum::error::Error;
 
 pub trait MessageSender {
-    fn send_message<T>(&self, request: T) -> Result<model::response::SuccessSendMessageDto, String>
-    where
-        T: contract::request::SendMessageDtoInterface + Serialize + Debug;
+    fn send_message(&self, request: Box<dyn contract::request::SendMessageDtoInterface>)
+       -> Result<model::response::SuccessSendMessageDto, Error>;
 }
