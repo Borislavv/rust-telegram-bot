@@ -6,7 +6,9 @@ use reqwest::StatusCode;
 use crate::telegram::domain::repository;
 use crate::telegram::domain::model;
 use crate::telegram::domain::contract;
+use crate::telegram::domain::model::response::{FailedResponseDto, GetMessagesDto, SuccessSendMessageDto};
 use crate::telegram::domain::r#enum::endpoint::Endpoint;
+use crate::telegram::domain::r#enum::error::Error;
 
 pub struct Telegram {
     // telegram bot url
@@ -30,32 +32,32 @@ impl Telegram {
 impl repository::interface::Telegram for Telegram
 {
     fn get_messages(&self, request: Box<dyn contract::request::GetMessagesDtoInterface>)
-        -> Result<model::response::GetMessagesDto, String>
+        -> Result<model::response::GetMessagesDto, Error>
     {
         let method = match self.methods.get(&Endpoint::GetMessagesMethod) {
             Some(val) => val,
             None => panic!("fatal: endpoint for request messages not found into the map")
         };
 
-        let result = Client::new()
+        let response = Client::new()
             .get(format!("{}/bot{}/{}", self.endpoint, self.token, method))
             .query(&[("offset", request.get_offset())])
-            .send();
+            .send()?;
 
-        match result {
-            Ok(response) => {
-                let bytes = response.bytes().unwrap();
-                let json = std::str::from_utf8(&bytes).unwrap();
-                let obj: model::response::GetMessagesDto = serde_json::from_str(json).unwrap();
+        let status_code = response.status();
+        let bytes = response.bytes()?;
+        let json = std::str::from_utf8(&bytes)?;
 
-                return Ok(obj);
-            },
-            Err(err) => Err(err.to_string())
-        }
+        println!("{}", json);
+
+        return match status_code {
+            StatusCode::OK => Ok(serde_json::from_str::<GetMessagesDto>(json)?),
+            _ => Err(Error::TelegramError(serde_json::from_str::<FailedResponseDto>(json)?.description)),
+        };
     }
 
     fn send_message(&self, request: Box<dyn contract::request::SendMessageDtoInterface>)
-        -> Result<model::response::SuccessSendMessageDto, String>
+        -> Result<model::response::SuccessSendMessageDto, Error>
     {
         let method = match self.methods.get(&Endpoint::SendMessageMethod) {
             Some(val) => val,
@@ -68,30 +70,19 @@ impl repository::interface::Telegram for Telegram
         body.insert("chat_id", chat_id);
         body.insert("parse_mod", request.get_parse_mod());
 
-        let result = Client::new()
+        let response = Client::new()
             .post(format!("{}/bot{}/{}", self.endpoint, self.token, method))
             .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .body(serde_json::to_string(&body).unwrap())
-            .send();
+            .body(serde_json::to_string(&body)?)
+            .send()?;
 
-        return match result {
-            Ok(response) => {
-                let status_code = response.status();
-                let bytes = response.bytes().unwrap();
-                let json = std::str::from_utf8(&bytes).unwrap();
+        let status_code = response.status();
+        let bytes = response.bytes().unwrap();
+        let json = std::str::from_utf8(&bytes)?;
 
-                match status_code {
-                    StatusCode::OK => {
-                        let success_resp: model::response::SuccessSendMessageDto = serde_json::from_str(json).unwrap();
-                        return Ok(success_resp);
-                    },
-                    _ => {
-                        let failed_resp: model::response::FailedSendMessageDto = serde_json::from_str(json).unwrap();
-                        return Err(format!("status_code: {}, description: {}", failed_resp.error_code, failed_resp.description));
-                    }
-                };
-            },
-            Err(err) => Err(err.to_string())
+        return match status_code {
+            StatusCode::OK => Ok(serde_json::from_str::<SuccessSendMessageDto>(json)?),
+            _ => Err(Error::TelegramError(serde_json::from_str::<FailedResponseDto>(json)?.description)),
         };
     }
 }
