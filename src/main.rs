@@ -4,7 +4,7 @@ mod telegram;
 extern crate serde_derive;
 extern crate serde_json;
 
-use core::panic;
+
 use std::rc::Rc;
 use crate::telegram::app::facade::TelegramFacade;
 use crate::telegram::app::facade_interface::TelegramFacadeInterface;
