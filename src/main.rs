@@ -29,15 +29,17 @@ fn main() {
         )
     );
 
-    // let result = repo.get_messages(model::request::GetMessagesDto::new(904019216));
-    let get_messages_resp = telegram_facade.get_messages(Box::new(model::request::GetMessagesDto::new(0)))
+    let get_messages_resp = telegram_facade
+        .get_messages(Box::new(model::request::GetMessagesDto::new(0)))
         .expect("Failed to get messages. Error occurred: ");
 
     println!("RESPONSE OF GET MESSAGES: {:?}", get_messages_resp);
 
-    let send_message_resp = telegram_facade.send_message(
-       Box::new(model::request::SendMessageDto::new(1063099947, "Fuck yeah)))".to_string(), "html".to_string()))
-    ).expect("Failed to send message. Error occurred: ");
+    let send_message_resp = telegram_facade
+        .send_message(
+           Box::new(model::request::SendMessageDto::new(1063099947, "Fuck yeah)))".to_string(), "html".to_string()))
+        )
+        .expect("Failed to send message. Error occurred: ");
 
     println!("RESPONSE OF SEND MESSAGE: {:?}", send_message_resp)
 }
