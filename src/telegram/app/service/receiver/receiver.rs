@@ -1,3 +1,5 @@
+use std::future::Future;
+use std::pin::Pin;
 use std::rc::Rc;
 use crate::telegram::app::service::receiver::receiver_interface::MessageReceiver;
 use crate::telegram::domain::{contract, model, repository};
@@ -15,7 +17,8 @@ impl Receiver {
 
 impl MessageReceiver for Receiver {
     fn get_messages(&self, request: Box<dyn contract::request::GetMessagesDtoInterface>)
-        -> Result<model::response::GetMessagesDto, Error> {
+        -> Pin<Box<dyn Future<Output = Result<model::response::GetMessagesDto, Error>> + '_>>
+    {
         self.repo.get_messages(request)
     }
 }
