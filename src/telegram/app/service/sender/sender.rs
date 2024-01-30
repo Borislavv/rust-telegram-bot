@@ -1,4 +1,5 @@
-
+use std::future::Future;
+use std::pin::Pin;
 use std::rc::Rc;
 
 use crate::telegram::app::service::sender::sender_interface::MessageSender;
@@ -17,7 +18,8 @@ impl Sender {
 
 impl MessageSender for Sender {
     fn send_message(&self, request: Box<dyn contract::request::SendMessageDtoInterface>)
-        -> Result<model::response::SuccessSendMessageDto, Error> {
+        -> Pin<Box<dyn Future<Output = Result<model::response::SuccessSendMessageDto, Error>> + '_>>
+    {
         self.repo.send_message(request)
     }
 }
