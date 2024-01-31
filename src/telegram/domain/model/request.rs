@@ -1,4 +1,5 @@
 use crate::telegram::domain::contract;
+use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetMessagesDto {
