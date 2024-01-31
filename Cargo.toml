@@ -13,5 +13,6 @@ env_logger = "0.11.0"
 http = "0.2.9"
 actix-web = "4"
 tokio = { version = "1.26.0", features = [] }
+mime = "0.3.16"
 [dependencies.reqwest]
 reqwest = "0.11.14"
